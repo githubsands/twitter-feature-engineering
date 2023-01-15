@@ -1,7 +1,9 @@
 # https://docs.tweepy.org/en/stable/client.html#
 
-import tweepy
 import os
+import logging
+import colorlog
+import tweepy
 
 APIKEY=os.environ.get("APIKEY")
 APIKEY_SECRET=os.environ.get("APIKEY_SECRET")
@@ -41,7 +43,6 @@ class follower_manager(twitter_client):
                         print("unfollowed succeeded")
                         break
 
-
 class list_manager(twitter_client):
     def __init__(self):
         twitter_client.__init__(self)
@@ -51,7 +52,28 @@ class list_manager(twitter_client):
     def add_steady_feed(self):
         resp = self.client.get_list_members(id=12)
 
+class spaces_manager(twitter_client):
+    def __init__(self):
+        twitter_client.__init__(self)
+        pass
+
 def main():
+    logger=colorlog.getLogger()
+    handler = colorlog.StreamHandler()
+    formatter = colorlog.ColoredFormatter(
+    "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
+    log_colors={
+        'DEBUG': 'cyan',
+        'INFO': 'green',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'red,bg_white',
+    },
+    secondary_log_colors={},
+    style='%'
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     if APIKEY == "":
         print("must set apikey")
         sys.exit()
@@ -67,7 +89,7 @@ def main():
     elif ACCESS_TOKEN_SECRET == "":
         print("must set access token secret")
         sys.exit()
-
+    logger.info("environmental variables set")
     lm=list_manager()
 
 if __name__ == "__main__":
