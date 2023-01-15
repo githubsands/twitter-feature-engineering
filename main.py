@@ -4,7 +4,7 @@ import tweepy
 import os
 
 APIKEY=os.environ.get("APIKEY")
-API_KEY_SECRET=os.environ.get("API_KEY_SECRET")
+APIKEY_SECRET=os.environ.get("APIKEY_SECRET")
 BEARER_TOKEN=os.environ.get("BEARER_TOKEN")
 ACCESS_TOKEN=os.environ.get("ACCESS_TOKEN")
 ACCESS_TOKEN_SECRET=os.environ.get("ACCESS_TOKEN_SECRET")
@@ -13,7 +13,7 @@ USER=os.environ.get("USER")
 class twitter_client():
     def __init__(self):
         try:
-            client = tweepy.Client(bearer_token=BEARER_TOKEN,consumer_key=APIKEY,consumer_secret=API_KEY_SECRET,access_token=ACCESS_TOKEN,access_token_secret=ACCESS_TOKEN_SECRET)
+            client = tweepy.Client(bearer_token=BEARER_TOKEN,consumer_key=APIKEY,consumer_secret=APIKEY_SECRET,access_token=ACCESS_TOKEN,access_token_secret=ACCESS_TOKEN_SECRET)
             auth = tweepy.OAuth2BearerHandler(BEARER_TOKEN)
             api = tweepy.API(auth,wait_on_rate_limit=True)
         except ValueError as e:
@@ -52,8 +52,23 @@ class list_manager(twitter_client):
         resp = self.client.get_list_members(id=12)
 
 def main():
+    if APIKEY == "":
+        print("must set apikey")
+        sys.exit()
+    elif APIKEY_SECRET == "":
+        print("must set apikey_secret")
+        sys.exit()
+    elif BEARER_TOKEN == "":
+        print("must set bearer token")
+        sys.exit()
+    elif ACCESS_TOKEN == "":
+        print("must set access token")
+        sys.exit()
+    elif ACCESS_TOKEN_SECRET == "":
+        print("must set access token secret")
+        sys.exit()
+
     lm=list_manager()
-    lm.get_tweets_in_list("steadyfeed")
 
 if __name__ == "__main__":
     main()
