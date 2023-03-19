@@ -3,6 +3,7 @@ import os
 import logging
 import colorlog
 import tweepy
+import sys
 
 # TODO: You should add multiplie proxies and each submission through tweepy needs to alternate
 # our servers
@@ -10,7 +11,7 @@ os.environ['HTTP_PROXY'] = ""
 os.environ['HTTPS_PROXY'] = ""
 
 class twitter_client():
-    def __init__(self, BEARER_TOKEN, APIKEY, APIKEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET):
+    def __init__(self, USER, BEARER_TOKEN, APIKEY, APIKEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET):
         try:
             client = tweepy.Client(bearer_token=BEARER_TOKEN,consumer_key=APIKEY,consumer_secret=APIKEY_SECRET,access_token=ACCESS_TOKEN,access_token_secret=ACCESS_TOKEN_SECRET)
             print(BEARER_TOKEN)
@@ -22,13 +23,14 @@ class twitter_client():
         else:
             self.client=client
             self.api=api
+            self.user=USER
             print("authentication succeeded")
 
-class follower_manager(twitter_client):
-    def __init__(self):
-        pass
+class people_manager(twitter_client):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
     def unfollow_nonfriends(self):
-        friends = self.api.get_follower_ids(user_id=USER)
+        friends = self.api.get_follower_ids(user_id=self.user)
         following = self.api.get_friend_ids()
         for followed_user in following:
             for friend in friends:
@@ -42,12 +44,14 @@ class follower_manager(twitter_client):
                     else:
                         print("unfollowed succeeded")
                         break
-    # def list_friends(self)
+    def list_friends(self):
+        friends = self.api.get_follower_ids(user_id=self.user)
+        for friend in friends:
+            print(friends)
 
 class list_manager(twitter_client):
-    def __init__(self, BEARER_TOKEN, APIKEY, APIKEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET):
-        twitter_client.__init__(self, BEARER_TOKEN, APIKEY, APIKEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-        pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
     def get_tweets_in_list(self,list_id):
         tweets = self.client.get_list_tweets(list_id)
     def add_steady_feed(self):
@@ -57,40 +61,25 @@ class list_manager(twitter_client):
         print(lists)
 
 class spaces_manager(twitter_client):
-    def __init__(self):
-        twitter_client.__init__(self)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         pass
 
 def main():
+    USER=os.environ.get("USER")
     APIKEY=os.environ.get("APIKEY")
     APIKEY_SECRET=os.environ.get("APIKEY_SECRET")
-    BEARER=os.environ.get("BEARER")
+    BEARER_TOKEN=os.environ.get("BEARER_TOKEN")
     ACCESS_TOKEN=os.environ.get("ACCESS_TOKEN")
     ACCESS_TOKEN_SECRET=os.environ.get("ACCESS_TOKEN_SECRET")
     USER=os.environ.get("USER")
-    logger=colorlog.getLogger()
-    handler = colorlog.StreamHandler()
-    formatter = colorlog.ColoredFormatter(
-    "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
-    log_colors={
-        'DEBUG': 'cyan',
-        'INFO': 'green',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'red,bg_white',
-    },
-    secondary_log_colors={},
-    style='%'
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
     if APIKEY == None:
         print("must set apikey")
         sys.exit()
     elif APIKEY_SECRET == None:
         print("must set apikey_secret")
         sys.exit()
-    elif BEARER == None:
+    elif BEARER_TOKEN == None:
         print("must set bearer token")
         sys.exit()
     elif ACCESS_TOKEN == None:
@@ -99,9 +88,12 @@ def main():
     elif ACCESS_TOKEN_SECRET == None:
         print("must set access token secret")
         sys.exit()
-    logger.info("environmental variables set")
-    lm=list_manager(BEARER,APIKEY,APIKEY_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
-    lm.get_my_lists()
+    elif USER == None:
+        print("must set access token secret")
+        sys.exit()
+
+    pm=people_manager(USER, BEARER_TOKEN, APIKEY, APIKEY_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+    pm.list_friends()
 
 if __name__ == "__main__":
     main()
